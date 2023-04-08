@@ -1,0 +1,3 @@
+[submodule "gpubench"]
+	path = gpubench
+	url = https://github.com/upsj/gpubench
