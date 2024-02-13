@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(ConcurrentMicrobench LANGUAGES CXX CUDA)
+project(ConcurrentMicrobench LANGUAGES CXX)
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/.gitignore)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.gitignore "*")
