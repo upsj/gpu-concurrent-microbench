@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.23)
 project(ConcurrentMicrobench LANGUAGES CXX CUDA)
 
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/.gitignore)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.gitignore "*")
+endif()
+
 option(USE_HIP "Use hip" OFF)
 set(CMAKE_CXX_STANDARD 17)
 
