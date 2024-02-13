@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.23)
 project(ConcurrentMicrobench LANGUAGES CXX CUDA)
 
 option(USE_HIP "Use hip" OFF)
+set(CMAKE_CXX_STANDARD 17)
 
 if(USE_HIP)
     set(GPU_LANG HIP)
