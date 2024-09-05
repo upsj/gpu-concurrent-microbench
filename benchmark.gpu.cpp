@@ -11,15 +11,9 @@
 #endif
 
 __device__ void do_work(int &data, int work) {
-  int tmp;
+  // simple linear shift register with long period
   for (int i = 0; i < work; i++) {
-#ifdef USE_HIP
-    volatile int tmp = work + 1;
-    work = tmp - 1;
-#else
-    asm volatile("add.s32 %0, %1, 1;" : "=r"(tmp) : "r"(data));
-    asm volatile("sub.s32 %0, %1, 1;" : "=r"(data) : "r"(tmp));
-#endif
+    data = (data << 1) | (__popc(data & 0xE10000) & 1);
   }
 }
 
@@ -39,13 +33,17 @@ __global__ void signal_propagation_tree_kernel(std::int32_t *flags, int degree,
   std::int32_t sum{1};
 #if !defined(__HIP_DEVICE_COMPILE__) && defined(__CUDA_ARCH__) &&              \
     (__CUDA_ARCH__ >= 700)
-  for (auto cur_child = child_begin; cur_child < child_end; child++) {
+  for (auto cur_child = child_begin; cur_child < child_end; cur_child++) {
     std::int32_t child_val{};
     while ((child_val = load_relaxed(flags + cur_child)) < 0) {
       __nanosleep(nanosleep_time);
     }
-    do_work<work>(child_val);
+    do_work(child_val, work);
     sum += child_val;
+  }
+  // make sure we don't write "non-ready" values
+  if (sum < 0) {
+    sum = 1;
   }
   store_relaxed(flags + node, sum);
 #else
@@ -59,6 +57,10 @@ __global__ void signal_propagation_tree_kernel(std::int32_t *flags, int degree,
       do_work(child_val, work);
       sum += child_val;
       if (cur_child == child_end) {
+        // make sure we don't write "non-ready" values
+        if (sum < 0) {
+          sum = 1;
+        }
         store_relaxed(flags + node, sum);
       }
     }
